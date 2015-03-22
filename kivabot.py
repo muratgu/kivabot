@@ -1,4 +1,15 @@
-#kivabot
+"""
+Kiva Bot
+
+If current credit is more than $25
+lends $25 to a recommended loan. 
+
+Usage: python kivabot.py
+
+Enter Kiva user id (email address) [not stored]
+Enter Kiva password [not stored]
+
+"""
 import mechanize 
 import getpass
 import sys
@@ -10,7 +21,9 @@ br.set_handle_refresh(False)
 br.addheaders =[('User-agent', 'Firefox')]
 url = 'https://www.kiva.org/login?doneUrl=https%3A%2F%2Fwww.kiva.org%2Fportfolio'
 resp = br.open(url)
-print br.title()
+
+loginTitle = br.title()
+print loginTitle
 
 br.form = list(br.forms())[0]    
 uid = br.form.find_control("email")
@@ -18,6 +31,10 @@ uid.value = raw_input("Username [%s]: " % getpass.getuser())
 pwd = br.form.find_control("password")
 pwd.value = getpass.getpass()
 resp = br.submit()
+if br.title() == loginTitle:
+    print 'Login failed'
+    sys.exit(-1)
+
 print br.title()
 
 soup = BeautifulSoup(resp.read())
@@ -46,10 +63,27 @@ for f in list(br.forms()):
         break
 if not br.form:
     raise Exception('Basket form not found.')
-        
+
 resp = br.submit()
 
+print br.title()
+
 soup = BeautifulSoup(resp.read())
+div = soup.findAll('span', {'class': 'value'})
+if len(div) != 3:
+    raise Exception('Order total not found')
+
+order_total_str = div[0].contents[0]
+if not order_total_str.startswith('$'):
+    raise Exception('Order total not recognized.')
+
+order_total = float(order_total_str.replace('$',''))
+if order_total > 25:
+    print 'Order total too much: %f' % order_total
+    sys.exit(-1)
+
+print 'Order total: %f' % order_total
+
 div = soup.findAll('span', {'class': lambda(v): v and v.find('value') > -1 and v.find('biggest') > -1})
 if len(div) != 1:
     raise Exception('Basket amount not found.')  
@@ -63,6 +97,13 @@ if basket_amount > 0:
     print 'Basket amount not zero.'
     sys.exit(-1)
 
-print 'basket amount = %f' % basket_amount    
+print 'Basket amount: %f' % basket_amount    
 
-print 'to be continued'  
+payment_form = [x for x in list(br.forms()) if x.attrs['id'] == 'payment_form']
+if len(payment_form) != 1:
+    raise Exception('Payment form not found.') 
+
+br.form = payment_form[0]
+resp = br.submit()
+print br.title()
+print 'Completed'
