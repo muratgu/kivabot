@@ -51,13 +51,15 @@ if credit_amount < 25.0:
     sys.exit(1)
 
 resp = br.open("http://www.kiva.org/lend")
-lendLink = br.links(url_regex='http://www.kiva.org/lend/*').next()
+lendLink = br.links(url_regex='http://www.kiva.org/lend/*\d').next()
 print lendLink.url
 print lendLink.text
 
 br.follow_link(lendLink)
 br.form = list(br.forms())[0] 
 resp = br.submit()
+
+resp = br.open("http://www.kiva.org/basket")
 
 br.form = None
 for f in list(br.forms()):
