@@ -111,4 +111,12 @@ if len(payment_form) != 1:
 br.form = payment_form[0]
 resp = br.submit()
 print br.title()
+
+try:
+    twitter_status = "Loaned %s to %s" % (basket_amount, lendLink.text)
+    from subprocess import call
+    call(["twitter", "set", twitter_status])
+except:
+    print "Cannot update twitter"
+
 print 'Completed'
