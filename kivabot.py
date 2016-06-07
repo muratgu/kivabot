@@ -41,7 +41,7 @@ if br.title() == loginTitle:
 print br.title()
 
 soup = BeautifulSoup(resp.read())
-credit = soup.findAll('span', {'class': 'creditNumber'})
+credit = soup.findAll('span', {'class': 'amount'})
 if len(credit) != 1:
     raise Exception('Credit amount not found')
 
