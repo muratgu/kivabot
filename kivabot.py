@@ -28,7 +28,7 @@ resp = br.open(url)
 loginTitle = br.title()
 print loginTitle
 
-br.form = list(br.forms())[0]    
+br.form = list(br.forms())[1]    
 uid = br.form.find_control("email")
 uid.value = arguid if arguid else raw_input("Username [%s]: " % getpass.getuser())
 pwd = br.form.find_control("password")
