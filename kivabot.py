@@ -62,7 +62,7 @@ print lendLinkUrl
 resp = br.open(lendLinkUrl)
 print br.title()
 
-postData = {'id':loan['properties']['id'], loanAmount:'25'}
+postData = {'id':loan['properties']['id'], 'loanAmount':'25'}
 postLink = 'https://www.kiva.org/ajax/xbAddToBasket&%s' % urllib.urlencode(postData)
 resp = br.open(postLink)
 postResp = json.loads(resp.readline())
