@@ -14,6 +14,8 @@ import mechanize
 import getpass
 import sys
 from BeautifulSoup import BeautifulSoup
+import json
+import requests as r
 
 arguid = sys.argv[1] if len(sys.argv) > 1 else None
 argpwd = sys.argv[2] if len(sys.argv) > 2 else None
@@ -50,12 +52,18 @@ if credit_amount < 25.0:
     print 'Credit amount not enough: $%d' % credit_amount
     sys.exit(1)
 
-resp = br.open("https://www.kiva.org/lend?sortBy=amountLeft")
-lendLink = br.links(url_regex='https://www.kiva.org/lend/*\d').next()
-print lendLink.url
-print lendLink.text
+#resp = br.open("https://www.kiva.org/lend?sortBy=amountLeft")
+#lendLink = br.links(url_regex='https://www.kiva.org/lend/*\d').next()
 
-br.follow_link(lendLink)
+loans = json.loads(r.get("https://api.kivaws.org/v2/loans?limit=24&facets=true&type=lite&sortBy=amountLeft").content)
+print 'number of loans = %s' % len(loans['entities'])
+loan = loans['entities'][0]
+lendLinkUrl = 'https://www.kiva.org/lend/%s' % loan['properties']['id']
+print lendLinkUrl
+
+resp = br.open(lendLinkUrl)
+print br.title()
+
 br.form = list(br.forms())[0] 
 resp = br.submit()
 
