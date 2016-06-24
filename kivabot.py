@@ -16,9 +16,10 @@ import sys
 from BeautifulSoup import BeautifulSoup
 import json
 import requests as r
+import urllib
 
-arguid = sys.argv[1] if len(sys.argv) > 1 else None
-argpwd = sys.argv[2] if len(sys.argv) > 2 else None
+arguid = sys.argv[1] if len(sys.argv) > 1 else 'mgungora@gmail.com'
+argpwd = sys.argv[2] if len(sys.argv) > 2 else 'muratgukiva1'
 
 br = mechanize.Browser()
 br.set_handle_robots(False)    
@@ -52,9 +53,6 @@ if credit_amount < 25.0:
     print 'Credit amount not enough: $%d' % credit_amount
     sys.exit(1)
 
-#resp = br.open("https://www.kiva.org/lend?sortBy=amountLeft")
-#lendLink = br.links(url_regex='https://www.kiva.org/lend/*\d').next()
-
 loans = json.loads(r.get("https://api.kivaws.org/v2/loans?limit=24&facets=true&type=lite&sortBy=amountLeft").content)
 print 'number of loans = %s' % len(loans['entities'])
 loan = loans['entities'][0]
@@ -64,8 +62,12 @@ print lendLinkUrl
 resp = br.open(lendLinkUrl)
 print br.title()
 
-br.form = list(br.forms())[0] 
-resp = br.submit()
+postData = {'id':loan['properties']['id'], loanAmount:'25'}
+postLink = 'https://www.kiva.org/ajax/xbAddToBasket&%s' % urllib.urlencode(postData)
+resp = br.open(postLink)
+postResp = json.loads(resp.readline())
+
+print postResp 
 
 resp = br.open("https://www.kiva.org/basket")
 
