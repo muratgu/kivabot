@@ -51,6 +51,13 @@ if len(credit) != 1:
 credit_amount = float(credit[0].contents[0].replace('$','').replace('&#36;',''))
 if credit_amount < 25.0:
     print 'Credit amount not enough: $%d' % credit_amount
+    try:
+        twitter_status = "Not ready to make a loan yet, have $%s" % (credit_amount)
+        from subprocess import call
+        call(["twitter", "set", twitter_status])
+    except Exception as ex:
+        print "Cannot update twitter"
+        print ex
     sys.exit(1)
 
 loans = json.loads(r.get("https://api.kivaws.org/v2/loans?limit=24&facets=true&type=lite&sortBy=amountLeft").content)
@@ -108,7 +115,7 @@ if not basket_amount_str.startswith('$'):
 
 basket_amount = float(basket_amount_str.replace('$',''))
 if basket_amount > 0:
-    print 'Basket amount not zero.'
+    print 'Basket amount not zero.'    
     sys.exit(-1)
 
 print 'Basket amount: %f' % basket_amount    
