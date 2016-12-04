@@ -125,7 +125,8 @@ try:
     twitter_status = "Loaned %s to %s" % (basket_amount, lendLink.text)
     from subprocess import call
     call(["twitter", "set", twitter_status])
-except:
+except Exception as ex:
     print "Cannot update twitter"
+    print ex
 
 print 'Completed'
