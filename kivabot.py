@@ -50,14 +50,7 @@ if len(credit) != 1:
 
 credit_amount = float(credit[0].contents[0].replace('$','').replace('&#36;',''))
 if credit_amount < 25.0:
-    print 'Credit amount not enough: $%d' % credit_amount
-    try:
-        twitter_status = "Not ready to make a loan yet, have $%s" % (credit_amount)
-        from subprocess import call
-        call(["twitter", "set", twitter_status])
-    except Exception as ex:
-        print "Cannot update twitter"
-        print ex
+    print 'Credit amount not enough: $%d' % credit_amount    
     sys.exit(1)
 
 loans = json.loads(r.get("https://api.kivaws.org/v2/loans?limit=24&facets=true&type=lite&sortBy=amountLeft").content)
@@ -67,7 +60,8 @@ lendLinkUrl = 'https://www.kiva.org/lend/%s' % loan['properties']['id']
 print lendLinkUrl
 
 resp = br.open(lendLinkUrl)
-print br.title()
+lendTitle = br.title()
+print lendTitle
 
 postData = {'id':loan['properties']['id'], 'loanAmount':'25'}
 postLink = 'https://www.kiva.org/ajax/xbAddToBasket'
@@ -129,7 +123,7 @@ resp = br.submit()
 print br.title()
 
 try:
-    twitter_status = "Loaned %s to %s" % (basket_amount, lendLink.text)
+    twitter_status = "Loaned %s to %s" % (basket_amount, lendTitle)
     from subprocess import call
     call(["twitter", "set", twitter_status])
 except Exception as ex:
