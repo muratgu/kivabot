@@ -20,6 +20,7 @@ import urllib
 
 arguid = sys.argv[1] if len(sys.argv) > 1 else None
 argpwd = sys.argv[2] if len(sys.argv) > 2 else None
+dryrun = sys.argv[3] if len(sys.argv) > 3 else None
 
 br = mechanize.Browser()
 br.set_handle_robots(False)    
@@ -60,8 +61,17 @@ lendLinkUrl = 'https://www.kiva.org/lend/%s' % loan['properties']['id']
 print lendLinkUrl
 
 resp = br.open(lendLinkUrl)
+soup = BeautifulSoup(resp.read())
+borrowerName = soup.find_all('h1',{'class':'borrower-name'})[0].text
+countrySection = soup.find_all('a', {'href':'#country-section'})[0].text
+print '%s from %s' % (borrowerName, countrySection)
+
 lendTitle = br.title()
 print lendTitle
+
+if dryrun:
+    print 'This was a dry run'
+    sys.exit(2)
 
 postData = {'id':loan['properties']['id'], 'loanAmount':'25'}
 postLink = 'https://www.kiva.org/ajax/xbAddToBasket'
@@ -123,7 +133,7 @@ resp = br.submit()
 print br.title()
 
 try:
-    twitter_status = "Just loaned %s to <a href='%s'>%s</a> #kiva" % (basket_amount, lendLinkUrl, lendTitle)
+    twitter_status = "Just loaned %s to %s %s #kiva" % (order_total, borrowerName, lendLinkUrl)
     from subprocess import call
     call(["twitter", "set", twitter_status])
 except Exception as ex:
