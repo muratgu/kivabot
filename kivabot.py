@@ -33,10 +33,13 @@ loginTitle = br.title()
 print loginTitle
 
 br.form = list(br.forms())[1]    
+
 uid = br.form.find_control("email")
-uid.value = arguid if arguid else raw_input("Username [%s]: " % getpass.getuser())
+uid.value = arguid if arguid else raw_input("Username [%s]: " % getpass.getuser)
+
 pwd = br.form.find_control("password")
 pwd.value = argpwd if argpwd else getpass.getpass()
+
 resp = br.submit()
 if br.title() == loginTitle:
     print 'Login failed'
@@ -62,8 +65,8 @@ print lendLinkUrl
 
 resp = br.open(lendLinkUrl)
 soup = BeautifulSoup(resp.read())
-borrowerName = soup.find_all('h1',{'class':'borrower-name'})[0].text
-countrySection = soup.find_all('a', {'href':'#country-section'})[0].text
+borrowerName = soup.findAll('h1',{'class':'borrower-name'})[0].text
+countrySection = soup.findAll('a', {'href':'#country-section'})[0].text
 print '%s from %s' % (borrowerName, countrySection)
 
 lendTitle = br.title()
