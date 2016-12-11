@@ -123,7 +123,7 @@ resp = br.submit()
 print br.title()
 
 try:
-    twitter_status = "Loaned %s to %s" % (basket_amount, lendTitle)
+    twitter_status = "Just loaned %s to <a href='%s'>%s</a> #kiva" % (basket_amount, lendLinkUrl, lendTitle)
     from subprocess import call
     call(["twitter", "set", twitter_status])
 except Exception as ex:
