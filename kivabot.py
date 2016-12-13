@@ -20,7 +20,7 @@ import urllib
 
 arguid = sys.argv[1] if len(sys.argv) > 1 else None
 argpwd = sys.argv[2] if len(sys.argv) > 2 else None
-dryrun = sys.argv[3] if len(sys.argv) > 3 else None
+dryrun = sys.argv[3] == 'dryrun' if len(sys.argv) > 3 else None
 
 br = mechanize.Browser()
 br.set_handle_robots(False)    
