@@ -136,7 +136,7 @@ resp = br.submit()
 print br.title()
 
 try:
-    twitter_status = "Just loaned %s to %s %s #kiva" % (order_total, borrowerName, lendLinkUrl)
+    twitter_status = "Just loaned %s to %s from %s %s #kiva" % (order_total, borrowerName, countrySection, lendLinkUrl)
     from subprocess import call
     call(["twitter", "set", twitter_status])
 except Exception as ex:
