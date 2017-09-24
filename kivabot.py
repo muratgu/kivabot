@@ -18,6 +18,49 @@ import json
 import requests as r
 import urllib
 
+def open_basket(br):
+    resp = br.open("https://www.kiva.org/basket")
+    br.form = None
+    for f in list(br.forms()):
+        if 'id' in f.attrs and f.attrs['id'] == 'my-basket-form':
+            br.form = f        
+            break
+    if not br.form:
+        print br.forms
+        raise Exception('Basket form not found.')    
+    return resp
+
+def remove_donation(br):    
+    resp = br.open("https://www.kiva.org/ajax/theNudge")
+    br.form = None
+    for f in list(br.forms()):
+        if 'id' in f.attrs and f.attrs['id'] == 'nudgeForm':
+            br.form = f        
+            break
+    if not br.form:
+        raise Exception('Nudege form not found.')    
+    otherDonationAmount = br.form.find_control("otherDonationAmount")
+    otherDonationAmount.value = "0"
+    br.submit()
+    print 'donation removed' 
+
+def verify_order_total(br, soup):
+    div = soup.findAll('span', {'class': 'value'})
+    if len(div) != 3:
+        raise Exception('Order total not found')
+
+    order_total_str = div[0].contents[0]
+    if not order_total_str.startswith('$'):
+        raise Exception('Order total not recognized.')
+
+    order_total = float(order_total_str.replace('$',''))
+    if order_total > 25:
+        print 'Order total too much: %f' % order_total
+        return -1
+
+    print 'Order total: %f' % order_total
+    return 1   
+
 arguid = sys.argv[1] if len(sys.argv) > 1 else None
 argpwd = sys.argv[2] if len(sys.argv) > 2 else None
 dryrun = sys.argv[3] == 'dryrun' if len(sys.argv) > 3 else None
@@ -65,8 +108,8 @@ print lendLinkUrl
 
 resp = br.open(lendLinkUrl)
 soup = BeautifulSoup(resp.read())
-borrowerName = soup.findAll('h1',{'class':'borrower-name'})[0].text
-countrySection = soup.findAll('a', {'href':'#country-section'})[0].text
+borrowerName = soup.findAll('h1',{'class':'borrower-name'})[0].text.encode('utf-8')
+countrySection = soup.findAll('a', {'href':'#country-section'})[0].text.encode('utf-8')
 print '%s from %s' % (borrowerName, countrySection)
 
 lendTitle = br.title()
@@ -82,35 +125,17 @@ resp = br.open(postLink, urllib.urlencode(postData))
 
 print 'posted' 
 
-resp = br.open("https://www.kiva.org/basket")
-
-br.form = None
-for f in list(br.forms()):
-    if 'id' in f.attrs and f.attrs['id'] == 'my-basket-form':
-        br.form = f        
-        break
-if not br.form:
-    raise Exception('Basket form not found.')
-
-resp = br.submit()
-
-print br.title()
-
+resp = open_basket(br)
 soup = BeautifulSoup(resp.read())
-div = soup.findAll('span', {'class': 'value'})
-if len(div) != 3:
-    raise Exception('Order total not found')
 
-order_total_str = div[0].contents[0]
-if not order_total_str.startswith('$'):
-    raise Exception('Order total not recognized.')
-
-order_total = float(order_total_str.replace('$',''))
-if order_total > 25:
-    print 'Order total too much: %f' % order_total
-    sys.exit(-1)
-
-print 'Order total: %f' % order_total
+if verify_order_total(br, soup) == -1:
+    remove_donation(br)
+    print 'reopening basket'
+    resp = open_basket(br)
+    soup = BeautifulSoup(resp.read())
+    if verify_order_total(br, soup) == -1:
+        print 'exiting'
+        sys.exit(-1)
 
 div = soup.findAll('span', {'class': lambda(v): v and v.find('value') > -1 and v.find('biggest') > -1})
 if len(div) != 1:
@@ -127,6 +152,9 @@ if basket_amount > 0:
 
 print 'Basket amount: %f' % basket_amount    
 
+resp = br.submit()
+print br.title()   
+
 payment_form = [x for x in list(br.forms()) if x.attrs['id'] == 'payment_form']
 if len(payment_form) != 1:
     raise Exception('Payment form not found.') 
@@ -136,7 +164,7 @@ resp = br.submit()
 print br.title()
 
 try:
-    twitter_status = "Just loaned %s to %s from %s %s #kiva" % (order_total, borrowerName, countrySection, lendLinkUrl)
+    twitter_status = "Just loaned %s to %s from %s %s #kiva" % (basket_amount, borrowerName, countrySection, lendLinkUrl)
     from subprocess import call
     call(["twitter", "set", twitter_status])
 except Exception as ex:
@@ -144,3 +172,4 @@ except Exception as ex:
     print ex
 
 print 'Completed'
+
