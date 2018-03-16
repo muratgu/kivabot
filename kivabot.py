@@ -18,6 +18,9 @@ import json
 import requests as r
 import urllib
 
+LOAN_AMOUNT = 25.0
+LOAN_AMOUNT_STR = '25'
+
 def open_basket(br):
     resp = br.open("https://www.kiva.org/basket")
     br.form = None
@@ -54,7 +57,7 @@ def verify_order_total(br, soup):
         raise Exception('Order total not recognized.')
 
     order_total = float(order_total_str.replace('$',''))
-    if order_total > 25:
+    if order_total > LOAN_AMOUNT:
         print 'Order total too much: %f' % order_total
         return -1
 
@@ -96,7 +99,7 @@ if len(credit) != 1:
     raise Exception('Credit amount not found')
 
 credit_amount = float(credit[0].contents[0].replace('$','').replace('&#36;',''))
-if credit_amount < 25.0:
+if credit_amount < LOAN_AMOUNT:
     print 'Credit amount not enough: $%d' % credit_amount    
     sys.exit(1)
 
@@ -119,7 +122,7 @@ if dryrun:
     print 'This was a dry run'
     sys.exit(2)
 
-postData = {'id':loan['properties']['id'], 'loanAmount':'25'}
+postData = {'id':loan['properties']['id'], 'loanAmount': LOAN_AMOUNT_STR}
 postLink = 'https://www.kiva.org/ajax/xbAddToBasket'
 resp = br.open(postLink, urllib.urlencode(postData))
 
@@ -164,7 +167,7 @@ resp = br.submit()
 print br.title()
 
 try:
-    twitter_status = "Just loaned %s to %s from %s %s #kiva" % (basket_amount_str, borrowerName, countrySection, lendLinkUrl)
+    twitter_status = "Just loaned %s to %s from %s %s #kiva" % (LOAN_AMOUNT_STR, borrowerName, countrySection, lendLinkUrl)
     from subprocess import call
     call(["twitter", "set", twitter_status])
 except Exception as ex:
